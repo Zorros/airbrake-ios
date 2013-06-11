@@ -84,6 +84,7 @@ extern NSString * const ABNotifierDidPostNoticesNotification;
  here are as follows:
  
  API Key: your Airbrake project API key
+ Hostname: name or your airbrake server (probably an errbit install)
  Environment Name: the name of the environment to collect notices in
  SSL: set this to enable secure reporting if your Airbrake account supports it
  Delegate: the object that wishes to receive events from the notifier
@@ -97,13 +98,38 @@ extern NSString * const ABNotifierDidPostNoticesNotification;
                 environmentName:(NSString *)name
                          useSSL:(BOOL)useSSL
                        delegate:(id<ABNotifierDelegate>)delegate;
+
 + (void)startNotifierWithAPIKey:(NSString *)key
                 environmentName:(NSString *)name
                          useSSL:(BOOL)useSSL
                        delegate:(id<ABNotifierDelegate>)delegate
         installExceptionHandler:(BOOL)exception
            installSignalHandler:(BOOL)signal;
+
 + (void)startNotifierWithAPIKey:(NSString *)key
+                environmentName:(NSString *)name
+                         useSSL:(BOOL)useSSL
+                       delegate:(id<ABNotifierDelegate>)delegate
+        installExceptionHandler:(BOOL)exception
+           installSignalHandler:(BOOL)signal
+              displayUserPrompt:(BOOL)display;
+
++ (void)startNotifierWithAPIKey:(NSString *)key
+                       hostname:(NSString*) hostnama
+                environmentName:(NSString *)name
+                         useSSL:(BOOL)useSSL
+                       delegate:(id<ABNotifierDelegate>)delegate;
+
++ (void)startNotifierWithAPIKey:(NSString *)key
+                       hostname:(NSString*) hostnama
+                environmentName:(NSString *)name
+                         useSSL:(BOOL)useSSL
+                       delegate:(id<ABNotifierDelegate>)delegate
+        installExceptionHandler:(BOOL)exception
+           installSignalHandler:(BOOL)signal;
+
++ (void)startNotifierWithAPIKey:(NSString *)key
+                       hostname:(NSString*) hostnama
                 environmentName:(NSString *)name
                          useSSL:(BOOL)useSSL
                        delegate:(id<ABNotifierDelegate>)delegate

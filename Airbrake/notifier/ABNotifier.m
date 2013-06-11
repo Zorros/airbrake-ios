@@ -38,7 +38,7 @@ static BOOL __useSSL = NO;
 static BOOL __displayPrompt = YES;
 
 // constant strings
-static NSString * const ABNotifierHostName                  = @"api.airbrake.io";
+static NSString * ABNotifierHostName                        = @"api.airbrake.io";
 static NSString * const ABNotifierAlwaysSendKey             = @"AlwaysSendCrashReports";
 NSString * const ABNotifierWillDisplayAlertNotification     = @"ABNotifierWillDisplayAlert";
 NSString * const ABNotifierDidDismissAlertNotification      = @"ABNotifierDidDismissAlert";
@@ -210,6 +210,56 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         }
     }
 }
+
+
++ (void)startNotifierWithAPIKey:(NSString *)key
+                       hostname:(NSString*) hostname
+                environmentName:(NSString *)name
+                         useSSL:(BOOL)useSSL
+                       delegate:(id<ABNotifierDelegate>)delegate {
+    [self startNotifierWithAPIKey:key
+                         hostname:hostname
+                  environmentName:name
+                           useSSL:useSSL
+                         delegate:delegate
+          installExceptionHandler:YES
+             installSignalHandler:YES
+                displayUserPrompt:YES];
+}
++ (void)startNotifierWithAPIKey:(NSString *)key
+                       hostname:(NSString*) hostname
+                environmentName:(NSString *)name
+                         useSSL:(BOOL)useSSL
+                       delegate:(id<ABNotifierDelegate>)delegate
+        installExceptionHandler:(BOOL)exception
+           installSignalHandler:(BOOL)signal {
+    [self startNotifierWithAPIKey:key
+                         hostname:hostname
+                  environmentName:name
+                           useSSL:useSSL
+                         delegate:delegate
+          installExceptionHandler:exception
+             installSignalHandler:signal
+                displayUserPrompt:YES];
+}
++ (void)startNotifierWithAPIKey:(NSString *)key
+                       hostname:(NSString*) hostname
+                environmentName:(NSString *)name
+                         useSSL:(BOOL)useSSL
+                       delegate:(id<ABNotifierDelegate>)delegate
+        installExceptionHandler:(BOOL)exception
+           installSignalHandler:(BOOL)signal
+              displayUserPrompt:(BOOL)display {
+    ABNotifierHostName = hostname;
+    [self startNotifierWithAPIKey:key
+                  environmentName:name
+                           useSSL:useSSL
+                         delegate:delegate
+          installExceptionHandler:exception
+             installSignalHandler:signal
+                displayUserPrompt:display];
+}
+
 
 #pragma mark - accessors
 + (id<ABNotifierDelegate>)delegate {
@@ -398,7 +448,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         }
         [[NSNotificationCenter defaultCenter] postNotificationName:ABNotifierWillPostNoticesNotification object:self];
     });
-    
+
     // create url
     NSString *URLString = [NSString stringWithFormat:
                            @"%@://%@/notifier_api/v2/notices",
