@@ -684,6 +684,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     }
     
     // declare blocks
+#if !(ABNOTIFIER_ALWAYS_SEND)
     void (^delegateDismissBlock) (void) = ^{
         if ([delegate respondsToSelector:@selector(notifierDidDismissAlert)]) {
             [delegate notifierDidDismissAlert];
@@ -696,16 +697,18 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         }
         [[NSNotificationCenter defaultCenter] postNotificationName:ABNotifierWillDisplayAlertNotification object:self];
     };
-    void (^postNoticesBlock) (void) = ^{
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [self postNoticesWithPaths:paths];
-        });
-    };
     void (^deleteNoticesBlock) (void) = ^{
         NSFileManager *manager = [NSFileManager defaultManager];
         [paths enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
             [manager removeItemAtPath:obj error:nil];
         }];
+    };
+#endif
+
+    void (^postNoticesBlock) (void) = ^{
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [self postNoticesWithPaths:paths];
+        });
     };
     void (^setDefaultsBlock) (void) = ^{
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -714,7 +717,11 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     };
     
 #if TARGET_OS_IPHONE
-    
+
+#if ABNOTIFIER_ALWAYS_SEND
+    setDefaultsBlock();
+    postNoticesBlock();
+#else
     GCAlertView *alert = [[GCAlertView alloc] initWithTitle:title message:body];
     [alert addButtonWithTitle:ABLocalizedString(@"ALWAYS_SEND") block:^{
         setDefaultsBlock();
@@ -727,6 +734,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     [alert setCancelButtonIndex:2];
     [alert show];
     [alert release];
+#endif
     
 #else
     
