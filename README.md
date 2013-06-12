@@ -6,6 +6,14 @@ To see how this might help you, check out [this screencast](http://guicocoa.com/
 
 The notifier requires iOS 4.0 or higher for iOS projects and Mac OS 10.7 or higher for Mac OS projects.
 
+# About this fork
+
+With this fork you get this extra features:
+
+* Allow to pass the hostname of your airbrake server when initializing the ABNotifier (i.e. you're using your own installation of errbit)
+* Define ABNOTIFIER_ALWAYS_SEND to 1 and the errors will be posted to the server without asking the user
+* New method in ABNotifier to post an arbitrary message to airbrake
+
 # Signals
 
 The notifier handles all unhandled exceptions, and a select list of Unix signals:
