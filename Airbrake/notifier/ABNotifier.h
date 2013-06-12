@@ -155,7 +155,11 @@ extern NSString * const ABNotifierDidPostNoticesNotification;
  */
 + (void)logException:(NSException *)exception parameters:(NSDictionary *)parameters;
 + (void)logException:(NSException *)exception;
-+ (void)log:(NSString *)message withLevel:(NSString*)level andCallStack:(NSArray *)callStack;
+
+/*
+ Log an arbitrary message with a title and a call stack.
+ */
++ (void)logMessage:(NSString *)message withTitle:(NSString*)title andCallStack:(NSArray *)callStack;
 
 /*
  

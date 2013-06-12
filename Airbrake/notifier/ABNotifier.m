@@ -332,12 +332,12 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     
 }
 
-+ (void)log:(NSString *)message withLevel:(NSString*)level andCallStack:(NSArray *)callStack {
++ (void)logMessage:(NSString *)message withTitle:(NSString*)title andCallStack:(NSArray *)callStack {
 
     // force all activity onto main thread
     if (![NSThread isMainThread]) {
         dispatch_sync(dispatch_get_main_queue(), ^{
-            [self log:message withLevel:level andCallStack:callStack];
+            [self logMessage:message withTitle:title andCallStack:callStack];
         });
         return;
     }
@@ -359,7 +359,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
 
             // write exception
             NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-                                        level, ABNotifierExceptionNameKey,
+                                        title, ABNotifierExceptionNameKey,
                                         message, ABNotifierExceptionReasonKey,
                                         callStack, ABNotifierCallStackKey,
                                         exceptionParameters, ABNotifierExceptionParametersKey,
