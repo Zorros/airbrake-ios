@@ -329,10 +329,15 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
             close(fd);
         }
     }
-    
+
+    [self postAllNotices];
 }
 
 + (void)logMessage:(NSString *)message withTitle:(NSString*)title andCallStack:(NSArray *)callStack {
+    [self logMessage:message withTitle:title parameters:nil andCallStack:callStack];
+}
+
++ (void)logMessage:(NSString *)message withTitle:(NSString*)title parameters:(NSDictionary *)parameters andCallStack:(NSArray *)callStack {
 
     // force all activity onto main thread
     if (![NSThread isMainThread]) {
@@ -354,6 +359,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
 
             // create parameters
             NSMutableDictionary *exceptionParameters = [NSMutableDictionary dictionary];
+            if ([parameters count]) { [exceptionParameters addEntriesFromDictionary:parameters]; }
             [exceptionParameters setValue:ABNotifierResidentMemoryUsage() forKey:@"Resident Memory Size"];
             [exceptionParameters setValue:ABNotifierVirtualMemoryUsage() forKey:@"Virtual Memory Size"];
 
@@ -388,6 +394,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         }
     }
 
+    [self postAllNotices];
 }
 
 + (void)logException:(NSException *)exception {
@@ -490,6 +497,12 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
 }
 
 #pragma mark - post notices
++ (void)postAllNotices {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [ABNotifier postNoticesWithPaths:[ABNotifier pathsForAllNotices]];
+    });
+}
+
 + (void)postNoticesWithPaths:(NSArray *)paths {
     
     // assert

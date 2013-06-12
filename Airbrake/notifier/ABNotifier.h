@@ -160,6 +160,7 @@ extern NSString * const ABNotifierDidPostNoticesNotification;
  Log an arbitrary message with a title and a call stack.
  */
 + (void)logMessage:(NSString *)message withTitle:(NSString*)title andCallStack:(NSArray *)callStack;
++ (void)logMessage:(NSString *)message withTitle:(NSString*)title parameters:(NSDictionary *)parameters andCallStack:(NSArray *)callStack;
 
 /*
  
