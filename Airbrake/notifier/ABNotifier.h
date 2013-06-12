@@ -163,6 +163,12 @@ extern NSString * const ABNotifierDidPostNoticesNotification;
 + (void)logMessage:(NSString *)message withTitle:(NSString*)title parameters:(NSDictionary *)parameters andCallStack:(NSArray *)callStack;
 
 /*
+ Log errors
+ */
++ (void) logError:(NSError *)error withTitle:(NSString *)title;
++ (void) logError:(NSError *)error withTitle:(NSString *)title andParameters:(NSDictionary *)parameters;
+
+/*
  
  Write a test notice to disk. It will be reported just like an actual crash.
  

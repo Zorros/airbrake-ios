@@ -13,6 +13,7 @@ With this fork you get this extra features:
 * Allow to pass the hostname of your airbrake server when initializing the ABNotifier (i.e. you're using your own installation of errbit)
 * Define ABNOTIFIER_ALWAYS_SEND to 1 and the errors will be posted to the server without asking the user
 * New method in ABNotifier to post an arbitrary message to airbrake
+* New method in ABNotifier to post NSErrors to airbrake
 
 # Signals
 
@@ -44,7 +45,7 @@ Airbrake supports a version floor for reported notices. A setting called "Latest
 
 ## Upgrading
 Please remove all of the resources used by the notifier from your project before upgrading. This is the best way to make sure all of the appropriate files are present and no extra files exist.
-    
+
 # Running The Notifier
 
 The `ABNotifier` class is the primary class you will interact with while using the notifier. All of its methods and properties, along with the `ABNotifierDelegate` protocol are documented in their headers. **Please read through the header files for a complete reference of the library.**
@@ -54,7 +55,7 @@ To run the notifier you only need to complete two steps. First, import the `ABNo
 ````objc
 #import "ABNotifier.h"
 ````
-    
+
 Next, call the start notifier method at the very beginning of your `application:didFinishLaunchingWithOptions:`
 
 ````objective-c
@@ -91,6 +92,21 @@ As of version 3.0 of the notifier, you can log your own exceptions at any time.
 }
 ````
 
+# Error Logging
+
+In this forked version you can also log any NSError with a title and some optional parameters
+
+````objective-c
+NSError *error;
+
+[someObject doSomething:&error];
+
+if(error) {
+  [ABNotifier logError:error withTitle:@"The very important operation failed"];
+}
+
+````
+
 # Debugging
 
 To test that the notifier is working inside your application, a simple test method is provided. This method raises an exception, catches it, and reports it as if a real crash happened. Add this code to your `application:didFinishLaunchingWithOptions:` to test the notifier:
@@ -121,7 +137,7 @@ The `ABNotifierDelegate` protocol allows you to respond to actions going on insi
 
 ````objective-c
 @implementation MyAppDelegate
-  
+
 // your other methods
 
 #pragma mark - notifier delegate
@@ -142,7 +158,7 @@ The `ABNotifierDelegate` protocol allows you to respond to actions going on insi
 - (NSString *)bodyForNoticeAlert {
   return @"MyApp has detected unreported crashes, would you like to send a report to the developer?";
 }
-  
+
 @end
 ````
 

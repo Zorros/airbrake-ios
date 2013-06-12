@@ -274,6 +274,19 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
 }
 
 #pragma mark - write data
++ (void) logError:(NSError *)error withTitle:(NSString *)title {
+    [self logError:error withTitle:title andParameters:nil];
+}
+
++ (void) logError:(NSError *)error withTitle:(NSString *)title andParameters:(NSDictionary *)parameters {
+    NSMutableDictionary *parametersWithError = [NSMutableDictionary dictionaryWithKeysAndObjects:@"error", error.description, nil];
+    [parametersWithError addEntriesFromDictionary:parameters];
+
+    [self logMessage:title withTitle:@"ERROR" parameters:parametersWithError andCallStack:[self cleanCallStack]];
+
+    NSLog(@"ERROR %@: %@",title, error.localizedDescription);
+}
+
 + (void)logException:(NSException *)exception parameters:(NSDictionary *)parameters {
     
     // force all activity onto main thread
@@ -331,6 +344,10 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     }
 
     [self postAllNotices];
+}
+
++ (void)logException:(NSException *)exception {
+    [self logException:exception parameters:nil];
 }
 
 + (void)logMessage:(NSString *)message withTitle:(NSString*)title andCallStack:(NSArray *)callStack {
@@ -397,9 +414,6 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     [self postAllNotices];
 }
 
-+ (void)logException:(NSException *)exception {
-    [self logException:exception parameters:nil];
-}
 + (void)writeTestNotice {
     @try {
         NSArray *array = [NSArray array];
@@ -802,6 +816,13 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     return NO;
 }
 
+#pragma mark - helpers
++ (NSArray *)cleanCallStack {
+    NSMutableArray *callStack = [NSMutableArray arrayWithArray:[NSThread callStackSymbols]];
+    [callStack removeObjectAtIndex:0]; //This method
+    [callStack removeObjectAtIndex:0]; //The parent: info:message, debug:message, error:withTitle:andParameters, ...
+    return [callStack copy];
+}
 @end
 
 #pragma mark - reachability change
