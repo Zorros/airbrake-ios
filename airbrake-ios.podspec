@@ -51,7 +51,7 @@ Pod::Spec.new do |s|
 LICENSE
 }
   s.source_files = 'Airbrake/{notifier,gcalertview}/*.{h,m}'
-  s.resources    = "Airbrake/notifier/*.lproj"
+  s.resources    = "Airbrake/notifier/*.bundle"
   s.frameworks   = 'SystemConfiguration'
   s.libraries    = 'xml2'
   s.dependency   'KissXML'
