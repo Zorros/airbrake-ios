@@ -1,17 +1,17 @@
 /*
- 
+
  Copyright (C) 2011 GUI Cocoa, LLC.
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
- 
+
  */
 
 #import "ABNotice.h"
@@ -127,20 +127,20 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     @synchronized(self) {
         static BOOL token = YES;
         if (token) {
-            
+
             // change token5
             token = NO;
-            
+
             // register defaults
             [[NSUserDefaults standardUserDefaults] registerDefaults:
              [NSDictionary dictionaryWithObject:@"NO" forKey:ABNotifierAlwaysSendKey]];
-            
+
             // capture vars
             __userData = [[NSMutableDictionary alloc] init];
             __delegate = delegate;
             __useSSL = useSSL;
             __displayPrompt = display;
-            
+
             // switch on api key
             if ([key length]) {
                 __APIKey = [key copy];
@@ -154,20 +154,20 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
             else {
                 ABLog(@"The API key must not be blank. No notices will be posted.");
             }
-            
+
             // switch on environment name
             if ([name length]) {
-                
+
                 // vars
                 unsigned long length;
-                
+
                 // cache signal notice file path
                 NSString *fileName = [[NSProcessInfo processInfo] globallyUniqueString];
                 const char *filePath = [[ABNotifier pathForNewNoticeWithName:fileName] UTF8String];
                 length = (strlen(filePath) + 1);
                 ab_signal_info.notice_path = malloc(length);
                 memcpy((void *)ab_signal_info.notice_path, filePath, length);
-                
+
                 // cache notice payload
                 NSData *data = [NSKeyedArchiver archivedDataWithRootObject:
                                 [NSDictionary dictionaryWithObjectsAndKeys:
@@ -181,7 +181,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
                 ab_signal_info.notice_payload = malloc(length);
                 memcpy(ab_signal_info.notice_payload, [data bytes], length);
                 ab_signal_info.notice_payload_length = length;
-                
+
                 // cache user data
                 [self addEnvironmentEntriesFromDictionary:
                  [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -189,7 +189,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
                   ABNotifierOperatingSystemVersion(), ABNotifierOperatingSystemVersionKey,
                   ABNotifierApplicationVersion(), ABNotifierApplicationVersionKey,
                   nil]];
-                
+
                 // start handlers
                 if (exception) {
                     ABNotifierStartExceptionHandler();
@@ -197,16 +197,16 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
                 if (signal) {
                     ABNotifierStartSignalHandler();
                 }
-                
+
                 // log
                 ABLog(@"Notifier %@ ready to catch errors", ABNotifierVersion);
                 ABLog(@"Environment \"%@\"", name);
-                
+
             }
             else {
                 ABLog(@"The environment name must not be blank. No new notices will be logged");
             }
-            
+
         }
     }
 }
@@ -279,7 +279,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
 }
 
 + (void) logError:(NSError *)error withTitle:(NSString *)title andParameters:(NSDictionary *)parameters {
-    NSMutableDictionary *parametersWithError = [NSMutableDictionary dictionaryWithKeysAndObjects:@"error", error.description, nil];
+    NSMutableDictionary *parametersWithError = [NSMutableDictionary dictionaryWithObject:error.description forKey:@"error"];
     [parametersWithError addEntriesFromDictionary:parameters];
 
     [self logMessage:title withTitle:@"ERROR" parameters:parametersWithError andCallStack:[self cleanCallStack]];
@@ -287,8 +287,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     NSLog(@"ERROR %@: %@",title, error.localizedDescription);
 }
 
-+ (void)logException:(NSException *)exception parameters:(NSDictionary *)parameters {
-    
++ (void)logException:(NSException *)exception parameters:(NSDictionary *)parameters {+
     // force all activity onto main thread
     if (![NSThread isMainThread]) {
         dispatch_sync(dispatch_get_main_queue(), ^{
@@ -296,22 +295,22 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         });
         return;
     }
-    
+
     // get file handle
     NSString *name = [[NSProcessInfo processInfo] globallyUniqueString];
     NSString *path = [self pathForNewNoticeWithName:name];
     int fd = ABNotifierOpenNewNoticeFile([path UTF8String], ABNotifierExceptionNoticeType);
-    
+
     // write stuff
     if (fd > -1) {
         @try {
-            
+
             // create parameters
             NSMutableDictionary *exceptionParameters = [NSMutableDictionary dictionary];
             if ([parameters count]) { [exceptionParameters addEntriesFromDictionary:parameters]; }
             [exceptionParameters setValue:ABNotifierResidentMemoryUsage() forKey:@"Resident Memory Size"];
             [exceptionParameters setValue:ABNotifierVirtualMemoryUsage() forKey:@"Virtual Memory Size"];
-            
+
             // write exception
             NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
                                         [exception name], ABNotifierExceptionNameKey,
@@ -326,13 +325,13 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
             unsigned long length = [data length];
             write(fd, &length, sizeof(unsigned long));
             write(fd, [data bytes], length);
-            
+
             // delegate
             id<ABNotifierDelegate> delegate = [self delegate];
             if ([delegate respondsToSelector:@selector(notifierDidLogException:)]) {
                 [delegate notifierDidLogException:exception];
             }
-            
+
         }
         @catch (NSException *exception) {
             ABLog(@"Exception encountered while logging exception");
@@ -518,15 +517,15 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
 }
 
 + (void)postNoticesWithPaths:(NSArray *)paths {
-    
+
     // assert
     NSAssert(![NSThread isMainThread], @"This method must not be called on the main thread");
     NSAssert([paths count], @"No paths were provided");
-    
+
     // get variables
     if ([paths count] == 0) { return; }
     id<ABNotifierDelegate> delegate = [ABNotifier delegate];
-    
+
     // notify people
     dispatch_sync(dispatch_get_main_queue(), ^{
         if ([delegate respondsToSelector:@selector(notifierWillPostNotices)]) {
@@ -541,36 +540,36 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
                            (__useSSL ? @"https" : @"http"),
                            ABNotifierHostName];
     NSURL *URL = [NSURL URLWithString:URLString];
-    
+
 #if TARGET_OS_IPHONE
-    
+
     // start background task
     __block BOOL keepPosting = YES;
     UIApplication *app = [UIApplication sharedApplication];
     UIBackgroundTaskIdentifier task = [app beginBackgroundTaskWithExpirationHandler:^{
         keepPosting = NO;
     }];
-    
+
     // report each notice
     [paths enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         if (keepPosting) { [self postNoticeWithContentsOfFile:obj toURL:URL]; }
         else { *stop = YES; }
     }];
-    
+
     // end background task
     if (task != UIBackgroundTaskInvalid) {
         [app endBackgroundTask:task];
     }
-    
+
 #else
-    
+
     // report each notice
     [paths enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         [self postNoticeWithContentsOfFile:obj toURL:URL];
     }];
-    
+
 #endif
-    
+
     // notify people
     dispatch_sync(dispatch_get_main_queue(), ^{
         if ([delegate respondsToSelector:@selector(notifierDidPostNotices)]) {
@@ -578,19 +577,19 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         }
         [[NSNotificationCenter defaultCenter] postNotificationName:ABNotifierDidPostNoticesNotification object:self];
     });
-	
+
 }
 + (void)postNoticeWithContentsOfFile:(NSString *)path toURL:(NSURL *)URL {
-    
+
     // assert
     NSAssert(![NSThread isMainThread], @"This method must not be called on the main thread");
-    
+
     // create url request
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
 	[request setTimeoutInterval:10.0];
 	[request setValue:@"text/xml" forHTTPHeaderField:@"Content-Type"];
 	[request setHTTPMethod:@"POST"];
-    
+
 	// get notice payload
     ABNotice *notice = [ABNotice noticeWithContentsOfFile:path];
 #ifdef DEBUG
@@ -605,20 +604,20 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
         return;
     }
-	
+
 	// perform request
     NSError *error = nil;
 	NSHTTPURLResponse *response = nil;
-    
+
 #ifdef DEBUG
-    NSData *responseBody = 
+    NSData *responseBody =
 #endif
     [NSURLConnection
      sendSynchronousRequest:request
      returningResponse:&response
      error:&error];
     NSInteger statusCode = [response statusCode];
-	
+
 	// error checking
     if (error) {
         ABLog(@"Encountered error while posting notice.");
@@ -628,17 +627,17 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     else {
         [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
     }
-	
+
 	// great success
 	if (statusCode == 200) {
         ABLog(@"Crash report posted");
 	}
-    
+
     // forbidden
     else if (statusCode == 403) {
         ABLog(@"Please make sure that your API key is correct and that your project supports SSL.");
     }
-    
+
     // invalid post
     else if (statusCode == 422) {
         ABLog(@"The posted notice payload is invalid.");
@@ -646,7 +645,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         ABLog(@"%@", XMLString);
 #endif
     }
-    
+
     // unknown
     else {
         ABLog(@"Encountered unexpected status code: %ld", (long)statusCode);
@@ -658,18 +657,18 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         [responseString release];
 #endif
     }
-    
+
 }
 
 #pragma mark - cache methods
 + (void)cacheUserDataDictionary {
     @synchronized(self) {
-        
+
         // free old cached value
         free(ab_signal_info.user_data);
         ab_signal_info.user_data_length = 0;
         ab_signal_info.user_data = nil;
-        
+
         // cache new value
         if (__userData) {
             NSData *data = [NSKeyedArchiver archivedDataWithRootObject:__userData];
@@ -678,20 +677,20 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
             [data getBytes:ab_signal_info.user_data length:length];
             ab_signal_info.user_data_length = length;
         }
-        
+
     }
 }
 
 #pragma mark - user interface
 + (void)showNoticeAlertForNoticesWithPaths:(NSArray *)paths {
-    
+
     // assert
     NSAssert([NSThread isMainThread], @"This method must be called on the main thread");
     NSAssert([paths count], @"No paths were provided");
-    
+
     // get delegate
     id<ABNotifierDelegate> delegate = [self delegate];
-    
+
     // alert title
     NSString *title = nil;
     if ([delegate respondsToSelector:@selector(titleForNoticeAlert)]) {
@@ -700,7 +699,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     if (title == nil) {
         title = ABLocalizedString(@"NOTICE_TITLE");
     }
-    
+
     // alert body
     NSString *body = nil;
     if ([delegate respondsToSelector:@selector(bodyForNoticeAlert)]) {
@@ -709,7 +708,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     if (body == nil) {
         body = [NSString stringWithFormat:ABLocalizedString(@"NOTICE_BODY"), ABNotifierApplicationName()];
     }
-    
+
     // declare blocks
 #if !(ABNOTIFIER_ALWAYS_SEND)
     void (^delegateDismissBlock) (void) = ^{
@@ -742,7 +741,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         [defaults setBool:YES forKey:ABNotifierAlwaysSendKey];
         [defaults synchronize];
     };
-    
+
 #if TARGET_OS_IPHONE
 
 #if ABNOTIFIER_ALWAYS_SEND
@@ -762,12 +761,12 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     [alert show];
     [alert release];
 #endif
-    
+
 #else
-    
+
     // delegate
     delegatePresentBlock();
-    
+
     // build alert
 	NSAlert *alert = [NSAlert
                       alertWithMessageText:title
@@ -775,15 +774,15 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
                       alternateButton:ABLocalizedString(@"DONT_SEND")
                       otherButton:ABLocalizedString(@"SEND")
                       informativeTextWithFormat:body];
-    
+
     // run alert
 	NSInteger code = [alert runModal];
-    
+
     // don't send
     if (code == NSAlertAlternateReturn) {
         deleteNoticesBlock();
     }
-    
+
     // send
     else {
         if (code == NSAlertDefaultReturn) {
@@ -791,12 +790,12 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
         }
         postNoticesBlock();
     }
-    
+
     // delegate
 	delegateDismissBlock();
-    
+
 #endif
-    
+
 }
 
 #pragma mark - reachability
