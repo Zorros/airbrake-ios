@@ -287,7 +287,7 @@ void ABNotifierReachabilityDidChange(SCNetworkReachabilityRef target, SCNetworkR
     NSLog(@"ERROR %@: %@",title, error.localizedDescription);
 }
 
-+ (void)logException:(NSException *)exception parameters:(NSDictionary *)parameters {+
++ (void)logException:(NSException *)exception parameters:(NSDictionary *)parameters {
     // force all activity onto main thread
     if (![NSThread isMainThread]) {
         dispatch_sync(dispatch_get_main_queue(), ^{
